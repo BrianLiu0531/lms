@@ -135,7 +135,7 @@ Integration tests cover role enforcement, publishing rules, cross-instructor iso
 One Docker image serves both the API and the built React app, and runs migrations on start-up.
 
 1. Create a PostgreSQL database (e.g. [Neon](https://neon.tech) free tier).
-2. Create a Web Service on [Render](https://render.com) from this repo using the Dockerfile.
+2. On [Render](https://render.com), choose **New → Blueprint** and pick this repo; [`render.yaml`](render.yaml) sets up a free Docker web service and generates `JWT_SECRET`.
 3. Set `DATABASE_URL`, `JWT_SECRET` (long random string) and `NODE_ENV=production`.
 4. Run `npx prisma db seed` once for the demo accounts.
 

@@ -1,0 +1,17 @@
+# Render Blueprint: Dashboard → New → Blueprint → pick this repo.
+# The free plan sleeps after 15 minutes idle; the first request then takes about a minute.
+services:
+  - type: web
+    name: kura-demo
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      # Neon connection string (direct, not pooled); you are asked for it when the Blueprint is created
+      - key: DATABASE_URL
+        sync: false
