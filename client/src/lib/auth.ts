@@ -26,8 +26,9 @@ export function useAuth() {
   });
 
   function startSession(user: User | null) {
-    // Drop every cached query from the previous session
-    queryClient.removeQueries();
+    // Drop every cached query from the previous session. Keep the "me" query itself:
+    // removing it would detach mounted useAuth() observers, so they would miss the new user.
+    queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== ME_KEY[0] });
     queryClient.setQueryData(ME_KEY, user);
   }
 
