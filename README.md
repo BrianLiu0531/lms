@@ -1,6 +1,6 @@
 # 🌿 Kura — Learning Management System
 
-![CI](https://github.com/<your-github-username>/lms/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/BrianLiu0531/lms/actions/workflows/ci.yml/badge.svg)
 
 A full-stack LMS with **students, instructors and admins**: build courses from modules and Markdown lessons, set assignments and auto-graded quizzes, track every learner’s progress, and manage student records. *Kura* means “school” in te reo Māori.
 
