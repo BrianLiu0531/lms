@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+model User {
+  id            String             @id @default(cuid())
+  email         String             @unique
+  name          String
+  passwordHash  String
+  role          Role
+  /// Only set for students, e.g. "S2026-0042"
+  studentNumber String?            @unique
+  createdAt     DateTime           @default(now())
+  teaching      Course[]
+  enrollments   Enrollment[]
+  completions   LessonCompletion[]
+  submissions   Submission[]
+  quizAttempts  QuizAttempt[]
+
+  @@index([role])
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  code         String       @unique
+  title        String
+  summary      String
+  instructorId String
+  instructor   User         @relation(fields: [instructorId], references: [id], onDelete: Restrict)
+  published    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  modules      Module[]
+  assignments  Assignment[]
+  quizzes      Quiz[]
+  enrollments  Enrollment[]
+
+  @@index([instructorId])
+}
+
+model Module {
+  id       String   @id @default(cuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  position Int
+  lessons  Lesson[]
+
+  @@index([courseId, position])
+}
+
+model Lesson {
+  id          String             @id @default(cuid())
+  moduleId    String
+  module      Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title       String
+  /// Markdown, rendered client-side without raw HTML
+  content     String
+  minutes     Int                @default(10)
+  position    Int
+  completions LessonCompletion[]
+
+  @@index([moduleId, position])
+}
+
+model Assignment {
+  id           String       @id @default(cuid())
+  courseId     String
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  instructions String
+  dueAt        DateTime
+  maxPoints    Int
+  createdAt    DateTime     @default(now())
+  submissions  Submission[]
+
+  @@index([courseId, dueAt])
+}
+
+model Quiz {
+  id          String         @id @default(cuid())
+  courseId    String
+  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  /// Percentage required to pass
+  passMark    Int            @default(70)
+  maxAttempts Int            @default(3)
+  createdAt   DateTime       @default(now())
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
+
+  @@index([courseId])
+}
+
+model QuizQuestion {
+  id           String   @id @default(cuid())
+  quizId       String
+  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  prompt       String
+  options      String[]
+  /// Never sent to students before they attempt the quiz
+  correctIndex Int
+  position     Int
+
+  @@index([quizId, position])
+}
+
+model Enrollment {
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt DateTime @default(now())
+
+  @@id([userId, courseId])
+  @@index([courseId])
+}
+
+model LessonCompletion {
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@id([userId, lessonId])
+}
+
+model Submission {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  content      String
+  submittedAt  DateTime   @default(now())
+  grade        Int?
+  feedback     String?
+  gradedAt     DateTime?
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers   Int[]
+  correct   Int
+  total     Int
+  percent   Int
+  createdAt DateTime @default(now())
+
+  @@index([quizId, studentId])
+}
